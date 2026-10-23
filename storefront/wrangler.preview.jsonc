@@ -1,0 +1,11 @@
+{
+  // Preview deployment (see cf-preview-entry.mjs). Production uses wrangler.jsonc.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rizzova-storefront",
+  "main": "cf-preview-entry.mjs",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "kv_namespaces": [{ "binding": "STATIC", "id": "19eb8b5e7b85446299f0024ebb558acf" }],
+  "workers_dev": true,
+  "observability": { "enabled": true }
+}

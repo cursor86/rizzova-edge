@@ -2,8 +2,11 @@ import "server-only";
 import type { Product, Spec, Variant } from "./types";
 
 /**
- * Catalogue access for server components. Reads from the rizzova-edge Worker when RIZZOVA_API_URL is set;
- * otherwise serves a small, clearly labelled sample catalogue so the storefront can be previewed.
+ * Catalogue access for server components.
+ * - RIZZOVA_API_URL set: reads the rizzova-edge Worker (the real store).
+ * - Otherwise preview mode: reads the public product feed of the current rizzova.com shop
+ *   (WooCommerce Store API, read-only), falling back to a small labelled sample catalogue.
+ *   Preview mode never takes orders.
  */
 const API = process.env.RIZZOVA_API_URL?.replace(/\/$/, "") ?? "";
 const REVALIDATE_SECONDS = 60;
@@ -52,7 +55,7 @@ async function api<T>(path: string): Promise<T | null> {
 }
 
 export async function listProducts(query?: string): Promise<Product[]> {
-  if (!API) return filterSample(query);
+  if (!API) return filterPreview(await previewCatalogue(), query);
   const qs = new URLSearchParams({ limit: "24" });
   if (query) qs.set("q", query);
   const list = await api<ApiList>(`/api/products?${qs.toString()}`);
@@ -62,7 +65,7 @@ export async function listProducts(query?: string): Promise<Product[]> {
 }
 
 export async function getProduct(slug: string): Promise<Product | null> {
-  if (!API) return SAMPLE.find((p) => p.slug === slug) ?? null;
+  if (!API) return (await previewCatalogue()).find((p) => p.slug === slug) ?? null;
   const d = await api<ApiDetail>(`/api/products/${encodeURIComponent(slug)}`);
   return d ? fromApi(d) : null;
 }
@@ -113,7 +116,110 @@ const SAMPLE: Product[] = [
   ]),
 ];
 
-function filterSample(query?: string): Product[] {
+function filterPreview(all: Product[], query?: string): Product[] {
   const q = query?.trim().toLowerCase();
-  return q ? SAMPLE.filter((p) => `${p.title} ${p.category}`.toLowerCase().includes(q)) : SAMPLE;
+  return q ? all.filter((p) => `${p.title} ${p.category}`.toLowerCase().includes(q)) : all;
+}
+
+// ─────────────── Preview feed: the live rizzova.com WooCommerce catalogue (read-only) ───────────────
+const PREVIEW_FEED = "https://rizzova.com/wp-json/wc/store/v1/products";
+
+interface WooProduct {
+  id: number; slug: string; name: string; short_description: string; is_in_stock: boolean;
+  prices: { price: string; regular_price: string; currency_code: string; currency_minor_unit: number };
+  images: { src: string; alt: string }[];
+  categories: { name: string }[];
+}
+
+const ENTITIES: Record<string, string> = { "&amp;": "&", "&#8211;": "–", "&#8212;": "—", "&#8217;": "’", "&#8216;": "‘", "&#8220;": "“", "&#8221;": "”", "&quot;": "\"", "&#039;": "'", "&nbsp;": " " };
+const decode = (s: string): string => s.replace(/&#?\w+;/g, (m) => ENTITIES[m] ?? m);
+const stripTags = (s: string): string => decode(s.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+
+function fromWoo(w: WooProduct): Product | null {
+  const scale = 10 ** (2 - w.prices.currency_minor_unit);
+  const price = Math.round(Number(w.prices.price) * scale);
+  const regular = Math.round(Number(w.prices.regular_price) * scale);
+  if (!price || w.images.length === 0) return null;
+  // One purchasable line per product in preview. Stock counts are not public, so in-stock items are not given a fake count.
+  const variant: Variant = { id: w.id, sku: `RZ-${w.id}`, priceCents: price, compareAtCents: regular > price ? regular : null, stock: w.is_in_stock ? 99 : 0, attributes: {} };
+  const category = decode(w.categories[0]?.name ?? "");
+  return {
+    id: w.id, slug: w.slug, title: decode(w.name), description: stripTags(w.short_description) || null, currency: w.prices.currency_code,
+    category, images: w.images.map((i) => i.src), variants: [variant],
+    specs: [{ group: "Details", label: "Category", value: category || "Rizzova" }, ...specsFromVariants([variant]).filter((s) => s.group === "Fulfilment")],
+    isSample: false,
+  };
+}
+
+// Feed caching. The rizzova.com feed takes 7-10 s, so pages never wait on it after the first load:
+// 1. per-isolate memory (instant), 2. a KV snapshot on Cloudflare (fast, shared by all isolates),
+// refreshed in the background when older than 15 minutes.
+const PREVIEW_TTL_MS = 15 * 60 * 1000;
+const SNAPSHOT_KEY = "preview:feed:v1";
+let memory: { at: number; data: Product[] } | null = null;
+let inflight: Promise<Product[]> | null = null;
+
+interface KvLike {
+  get(key: string, type: "json"): Promise<unknown>;
+  put(key: string, value: string): Promise<void>;
+}
+interface CfContextLike { env: { STATIC?: KvLike }; ctx: { waitUntil(p: Promise<unknown>): void } }
+
+async function cloudflareContext(): Promise<CfContextLike | null> {
+  try {
+    const mod = await import("@opennextjs/cloudflare");
+    return (await mod.getCloudflareContext({ async: true })) as unknown as CfContextLike;
+  } catch {
+    return null; // plain `next start` / `next dev`
+  }
+}
+
+function refresh(kv: KvLike | undefined): Promise<Product[]> {
+  inflight ??= loadPreviewFeed().then(async (data) => {
+    if (!data[0]?.isSample) {
+      memory = { at: Date.now(), data };
+      if (kv) await kv.put(SNAPSHOT_KEY, JSON.stringify({ at: memory.at, data })).catch(() => undefined);
+    }
+    return data;
+  }).finally(() => { inflight = null; });
+  return inflight;
+}
+
+async function previewCatalogue(): Promise<Product[]> {
+  const fresh = (at: number) => Date.now() - at < PREVIEW_TTL_MS;
+  if (memory && fresh(memory.at)) return memory.data;
+  const cf = await cloudflareContext();
+  const kv = cf?.env.STATIC;
+  if (!memory && kv) {
+    const snap = (await kv.get(SNAPSHOT_KEY, "json").catch(() => null)) as { at: number; data: Product[] } | null;
+    if (snap?.data?.length) memory = snap;
+  }
+  if (memory) {
+    if (!fresh(memory.at)) {
+      const job = refresh(kv);
+      if (cf) cf.ctx.waitUntil(job);
+    }
+    return memory.data; // serve the snapshot now, even if a refresh is running
+  }
+  return refresh(kv);
+}
+
+async function loadPreviewFeed(): Promise<Product[]> {
+  try {
+    const pages = await Promise.all([1, 2, 3].map(async (page) => {
+      const res = await fetch(`${PREVIEW_FEED}?per_page=100&page=${page}&orderby=popularity`, { next: { revalidate: 900 } });
+      return res.ok ? ((await res.json()) as WooProduct[]) : [];
+    }));
+    const products = pages.flat().map(fromWoo).filter((p): p is Product => p !== null);
+    return products.length > 0 ? products : SAMPLE;
+  } catch {
+    return SAMPLE;
+  }
+}
+
+/** Where preview data came from, for the banner. */
+export async function previewSource(): Promise<"rizzova.com" | "sample" | null> {
+  if (API) return null;
+  const all = await previewCatalogue();
+  return all[0]?.isSample ? "sample" : "rizzova.com";
 }

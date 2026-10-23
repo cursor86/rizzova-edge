@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: { params: Params }) {
   };
 
   return (
-    <article className="grid grid-cols-[minmax(0,1fr)] gap-8 pt-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" aria-labelledby="product-title">
+    <article className="container-x grid grid-cols-[minmax(0,1fr)] gap-8 pt-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" aria-labelledby="product-title">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="min-w-0 space-y-6">
         <MediaGallery media={media} title={product.title} seed={product.id} category={product.category} isSample={product.isSample} />
