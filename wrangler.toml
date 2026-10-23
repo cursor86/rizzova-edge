@@ -1,0 +1,63 @@
+# Rizzova Edge – API + ingestion engine (one Worker).
+# The storefront (React Router v7) is a separate project that binds the SAME D1/KV ids; see ARCHITECTURE.md.
+# Replace every REPLACE_ME id with the output of the create commands in README.md.
+
+name = "rizzova-edge"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[observability]
+enabled = true
+
+[vars]
+AE_GATEWAY = "https://api-sg.aliexpress.com"
+AE_SHIP_TO_COUNTRY = "AU"
+STORE_CURRENCY = "AUD"
+STORE_LANGUAGE = "en"
+PRICE_MARKUP = "2.2"            # retail = AliExpress cost x markup, rounded to .99
+COMPARE_AT_MARKUP = "1.3"       # compare-at = retail x this (0 disables)
+PUBLIC_SITE_URL = "https://shop.rizzova.com"
+CF_IMAGES_ACCOUNT_HASH = "REPLACE_ME"   # from the Images dashboard (delivery URL hash)
+CHECKOUT_COUNTRIES = "AU,NZ"
+
+# Secrets (set with `wrangler secret put NAME`, never in this file):
+#   AE_APP_KEY, AE_APP_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+#   CF_ACCOUNT_ID, CF_IMAGES_API_TOKEN, ADMIN_TOKEN
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rizzova-db"
+database_id = "REPLACE_ME"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_ME"
+
+[[queues.producers]]
+binding = "JOBS"
+queue = "rizzova-jobs"
+
+[[queues.consumers]]
+queue = "rizzova-jobs"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "rizzova-jobs-dlq"
+
+[triggers]
+crons = [
+  "*/15 * * * *",   # token health: refresh before expiry
+  "0 */6 * * *",    # catalogue sync: re-pull the stalest products + drain import_queue
+  "30 2 * * *"      # logistics: poll tracking for open fulfilments
+]
+
+# ───────────── Staging environment (separate data) ─────────────
+[env.staging]
+name = "rizzova-edge-staging"
+vars = { AE_GATEWAY = "https://api-sg.aliexpress.com", AE_SHIP_TO_COUNTRY = "AU", STORE_CURRENCY = "AUD", STORE_LANGUAGE = "en", PRICE_MARKUP = "2.2", COMPARE_AT_MARKUP = "1.3", PUBLIC_SITE_URL = "https://staging.rizzova.com", CF_IMAGES_ACCOUNT_HASH = "REPLACE_ME", CHECKOUT_COUNTRIES = "AU,NZ" }
+d1_databases = [{ binding = "DB", database_name = "rizzova-db-staging", database_id = "REPLACE_ME" }]
+kv_namespaces = [{ binding = "KV", id = "REPLACE_ME" }]
+queues = { producers = [{ binding = "JOBS", queue = "rizzova-jobs-staging" }], consumers = [{ queue = "rizzova-jobs-staging", max_batch_size = 10, max_retries = 5, dead_letter_queue = "rizzova-jobs-staging-dlq" }] }
+triggers = { crons = ["*/15 * * * *", "0 */6 * * *", "30 2 * * *"] }
