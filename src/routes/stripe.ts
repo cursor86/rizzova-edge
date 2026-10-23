@@ -43,11 +43,13 @@ stripeWebhook.post("/", async (c) => {
     const details = s.customer_details ?? {};
     const updated = await c.env.DB.prepare(
       `UPDATE orders SET status = 'paid', stripe_payment_intent = ?, email = COALESCE(email, ?),
-         shipping_name = ?, shipping_phone = ?, shipping_address_json = ?, total_cents = ?, updated_at = ?
+         -- A delivery address saved at checkout wins; Stripe's (possibly billing) address only fills gaps.
+         shipping_name = COALESCE(shipping_name, ?), shipping_phone = COALESCE(shipping_phone, ?),
+         shipping_address_json = COALESCE(shipping_address_json, ?), total_cents = ?, updated_at = ?
        WHERE id = ? AND status = 'pending'`,
     ).bind(
       s.payment_intent ?? null, details.email ?? null, ship.name ?? details.name ?? null, details.phone ?? null,
-      JSON.stringify(ship.address ?? details.address ?? {}), s.amount_total ?? 0, now(), orderId,
+      ship.address || details.address ? JSON.stringify(ship.address ?? details.address) : null, s.amount_total ?? 0, now(), orderId,
     ).run();
     if (updated.meta.changes) await c.env.JOBS.send({ type: "fulfil-order", orderId });
   }

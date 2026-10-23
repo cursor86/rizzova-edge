@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Env } from "../env";
+import { isValidBundleId } from "../lib/bundle";
 
-export interface CartLine { variantId: number; quantity: number }
+export interface CartLine { variantId: number; quantity: number; bundleId?: string }
 export interface Cart { id: string; lines: CartLine[]; updatedAt: number }
 
 const CART_TTL = 60 * 60 * 24 * 14; // 14 days
@@ -16,11 +17,23 @@ const saveCart = (env: Env, cart: Cart) => env.KV.put(`cart:${cart.id}`, JSON.st
 
 export const cart = new Hono<{ Bindings: Env }>();
 
+/** DELETE /api/cart – empties the cart (used before the storefront re-syncs its local cart). */
+cart.delete("/", async (c) => {
+  const existing = await loadCart(c.env, getCookie(c, "rz_cart"));
+  if (existing) await c.env.KV.delete(`cart:${existing.id}`);
+  return c.json({ lines: [] });
+});
+
 cart.get("/", async (c) => c.json((await loadCart(c.env, getCookie(c, "rz_cart"))) ?? { lines: [] }));
 
-/** POST /api/cart { variantId, quantity } – sets the quantity (0 removes). Prices are never trusted from the client. */
+/**
+ * POST /api/cart { variantId, quantity, bundleId? } – sets the quantity of that line (0 removes).
+ * The same variant can sit in the cart once on its own and once per bundle. Prices are never trusted from the client.
+ */
 cart.post("/", async (c) => {
-  const body = await c.req.json<{ variantId?: number; quantity?: number }>().catch(() => ({} as { variantId?: number; quantity?: number }));
+  const body = await c.req.json<{ variantId?: number; quantity?: number; bundleId?: unknown }>().catch(() => ({} as { variantId?: number; quantity?: number; bundleId?: unknown }));
+  const bundleId = body.bundleId === undefined || body.bundleId === null ? undefined : body.bundleId;
+  if (bundleId !== undefined && !isValidBundleId(bundleId)) return c.json({ error: "Invalid bundleId" }, 400);
   const variantId = Number(body.variantId);
   const quantity = Math.floor(Number(body.quantity));
   if (!Number.isInteger(variantId) || variantId <= 0 || !Number.isInteger(quantity) || quantity < 0 || quantity > 20) {
@@ -33,8 +46,8 @@ cart.post("/", async (c) => {
   }
   const existing = await loadCart(c.env, getCookie(c, "rz_cart"));
   const current: Cart = existing ?? { id: crypto.randomUUID(), lines: [], updatedAt: Date.now() };
-  current.lines = current.lines.filter((l) => l.variantId !== variantId);
-  if (quantity > 0) current.lines.push({ variantId, quantity });
+  current.lines = current.lines.filter((l) => !(l.variantId === variantId && l.bundleId === bundleId));
+  if (quantity > 0) current.lines.push(bundleId ? { variantId, quantity, bundleId } : { variantId, quantity });
   if (current.lines.length > MAX_LINES) return c.json({ error: `Cart limited to ${MAX_LINES} lines` }, 400);
   current.updatedAt = Date.now();
   await saveCart(c.env, current);

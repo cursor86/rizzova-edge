@@ -6,6 +6,8 @@ A serverless dropshipping backend on Cloudflare (Workers, D1, KV, Queues, Cron, 
 
 ## What's in this repo
 
+The Worker (this folder) is the backend. The customer-facing shop is in [`storefront/`](storefront/README.md): Next.js 16, React 19, Tailwind v4.
+
 | Path | Purpose |
 |---|---|
 | `wrangler.toml` | Worker config: D1, KV, Queue (producer, consumer, DLQ), cron, and a `staging` environment |
@@ -21,8 +23,8 @@ A serverless dropshipping backend on Cloudflare (Workers, D1, KV, Queues, Cron, 
 |---|---|---|
 | GET | `/api/products?limit&cursor&category&q` | Keyset pagination, FTS search, edge cached |
 | GET | `/api/products/:slug` | Detail with active variants and images |
-| GET/POST | `/api/cart` | KV cart, `{ variantId, quantity }` (0 removes) |
-| POST | `/api/checkout` | Re-prices from D1, creates the order, returns the Stripe Checkout URL |
+| GET/POST/DELETE | `/api/cart` | KV cart, `{ variantId, quantity, bundleId? }` (0 removes) |
+| POST | `/api/checkout` | `{ email?, shipping? }`: re-prices from D1, applies bundle discounts, creates the order, returns the Stripe Checkout URL |
 | POST | `/webhooks/stripe` | Signed; marks the order paid and queues fulfilment |
 | GET | `/oauth/aliexpress/start` | Admin; begins AliExpress authorisation |
 | GET | `/oauth/aliexpress/callback` | `code` (required), `uuid` (optional), `state` |
@@ -88,6 +90,8 @@ These checks ran on Wrangler's local runtime:
 - Product listing, search and detail work.
 - Cart add works, and the stock limit is enforced.
 - Checkout writes the order and its items. It is cancelled cleanly when Stripe rejects the key.
+- Bundle pricing is applied on the server: a 2-item bundle gets 5% off each line, and the same item bought separately stays at full price.
+- A storefront delivery address is saved on the order.
 - The OAuth guards reject a missing `code` and a bad `state`.
 - The admin guard rejects requests without a token.
 - A signed Stripe event marks the order paid and queues fulfilment. A replay and a tampered body are both rejected.
