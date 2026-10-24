@@ -1,7 +1,8 @@
 import { Hono, type MiddlewareHandler } from "hono";
 import type { Env } from "../env";
 import { safeEqual, now } from "../lib/util";
-import { callSystem, AliExpressError } from "../aliexpress/client";
+import { callSystem, callBusiness, AliExpressError } from "../aliexpress/client";
+import { getAccessToken } from "../aliexpress/auth";
 
 export const requireAdmin: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   const header = c.req.header("authorization") ?? "";
@@ -61,5 +62,34 @@ admin.get("/ae-selftest", async (c) => {
   } catch (err) {
     const e = err as AliExpressError;
     return c.json({ ...facts, aliexpressCode: e.code, message: e.message, signatureOk: e.code !== "IncompleteSignature" });
+  }
+});
+
+/** Read-only AliExpress API probe for checking real field names. Order-placing methods are not allowed here. */
+const PROBE_METHODS = new Set([
+  "aliexpress.ds.feedname.get",
+  "aliexpress.ds.feed.itemids.get",
+  "aliexpress.ds.product.get",
+  "aliexpress.ds.category.get",
+  "aliexpress.ds.freight.query",
+  "aliexpress.ds.order.tracking.get",
+  "aliexpress.trade.ds.order.get",
+  "aliexpress.ds.text.search",
+]);
+
+admin.get("/ae-probe", async (c) => {
+  const method = c.req.query("method") ?? "";
+  if (!PROBE_METHODS.has(method)) return c.json({ error: "Method not allowed", allowed: [...PROBE_METHODS] }, 400);
+  let params: Record<string, string> = {};
+  try {
+    params = JSON.parse(c.req.query("params") ?? "{}");
+  } catch {
+    return c.json({ error: "params must be JSON" }, 400);
+  }
+  try {
+    return c.json(await callBusiness(c.env, method, await getAccessToken(c.env), params));
+  } catch (err) {
+    const e = err as AliExpressError;
+    return c.json({ error: e.message, code: e.code }, 502);
   }
 });
