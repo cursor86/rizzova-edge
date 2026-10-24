@@ -15,7 +15,7 @@ export function InsideTabs({ shelves, section }: { shelves: Shelf[]; section: nu
   const shelf = shelves[active];
   if (!shelf) return null;
   return (
-    <section aria-labelledby="inside-h" className="bg-[var(--color-ink)] py-24 sm:py-32">
+    <section aria-labelledby="inside-h" className="bg-[var(--color-sage)] py-24 sm:py-32">
       <div className="container-x">
         <p className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.2em] text-[var(--color-muted)]">{sectionLabel(section, "Categories")}</p>
         <h2 id="inside-h" className="mt-4 font-[family-name:var(--font-serif)] leading-none" style={{ fontSize: "clamp(3.5rem, 9vw, 8rem)" }}>Inside.</h2>

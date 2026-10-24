@@ -61,9 +61,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {cats.length > 0 && <InsideTabs shelves={cats} section={3} />}
       <HowItWorks section={4} />
       <BrandFilm />
-      <section id="the-edit" aria-labelledby="edit-h" className="bg-[var(--color-paper)] py-24 text-[var(--color-paper-ink)] sm:py-32">
+      <section id="the-edit" aria-labelledby="edit-h" className="bg-[var(--color-ink)] py-24 text-[var(--color-fg)] sm:py-32">
         <div className="container-x space-y-10">
-          <p className="border-b border-black/15 pb-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.2em]">05 / Everything</p>
+          <p className="border-b border-white/15 pb-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.2em]">05 / Everything</p>
           <h2 id="edit-h" className="font-[family-name:var(--font-serif)] leading-none" style={{ fontSize: "clamp(3rem, 7vw, 6rem)" }}>The edit.</h2>
         </div>
         <div className="container-x mt-10 rounded-[var(--radius-panel)] bg-[var(--color-ink)] p-4 text-[var(--color-fg)] sm:p-6">
