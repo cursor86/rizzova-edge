@@ -48,14 +48,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
 
   const shown = products.filter(withImage);
-  const [hero, ...rest] = shown;
-  const picks = rest.slice(0, 3);
+  const picks = shown.slice(0, 3);
   const cats = shelves(shown, 5);
 
   return (
     <div className="-mb-24">
       {banner}
-      {hero && <QuietHero product={hero} />}
+      <QuietHero />
       {picks.length > 0 && <PicksCarousel products={picks} section={1} />}
       <DeliveryBand section={2} />
       {cats.length > 0 && <InsideTabs shelves={cats} section={3} />}

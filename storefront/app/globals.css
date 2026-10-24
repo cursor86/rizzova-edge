@@ -87,3 +87,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee, .animate-spin-slow { animation: none; }
 }
+
+/* Gold foil text with a slow light sweep (hero wordmark). */
+@utility rz-gold {
+  background: linear-gradient(100deg, #a8842f 0%, #d9b45a 30%, #fff1c4 45%, #d9b45a 60%, #8f6d22 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rz-sweep 6s ease-in-out infinite;
+}
+@keyframes rz-sweep {
+  0%, 100% { background-position: 100% 0; }
+  50% { background-position: 0% 0; }
+}

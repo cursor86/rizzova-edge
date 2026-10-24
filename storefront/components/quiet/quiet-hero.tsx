@@ -2,32 +2,60 @@
 
 import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import type { Product } from "@/lib/types";
 
-/** Full-screen opening: a giant wordmark with one product in a soft circle, and almost nothing else. */
-export function QuietHero({ product }: { product: Product }) {
+const LETTERS = "RIZZOVA".split("");
+
+/** Full-screen opening: the gold wordmark rises letter by letter, a light sweeps across it, and it spreads apart as you scroll. */
+export function QuietHero() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const scale = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 1.18]);
-  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, 120]);
-  const fade = useTransform(scrollYProgress, [0, 0.6], [1, reduce ? 1 : 0]);
+  const spread = useTransform(scrollYProgress, [0, 1], reduce ? ["0em", "0em"] : ["0em", "0.35em"]);
+  const fade = useTransform(scrollYProgress, [0, 0.7], [1, reduce ? 1 : 0]);
+  const sealRotate = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 140]);
 
   return (
-    <section ref={ref} aria-label="Rizzova" className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden bg-[radial-gradient(70%_60%_at_50%_45%,#2a1645_0%,var(--color-ink)_70%)] text-[var(--color-fg)]">
-      <div className="relative flex flex-1 items-center justify-center">
-        <h1 className="sr-only">Rizzova: everyday things, chosen carefully</h1>
-        <motion.p aria-hidden style={{ opacity: fade }} className="select-none bg-gradient-to-b from-[#f1d78f] via-[var(--color-accent)] to-[#a8842f] bg-clip-text font-[family-name:var(--font-serif)] uppercase leading-none tracking-[0.02em] text-transparent">
-          <span style={{ fontSize: "clamp(4rem, 18vw, 18rem)" }}>Rizzova</span>
+    <section ref={ref} aria-label="Rizzova" className="relative flex min-h-[calc(100svh-4rem)] flex-col overflow-hidden bg-[radial-gradient(60%_55%_at_50%_48%,#341a57_0%,var(--color-ink)_72%)]">
+      <h1 className="sr-only">Rizzova: everyday things, chosen carefully</h1>
+      {/* Thin gold rings behind the wordmark */}
+      <motion.div aria-hidden style={{ rotate: sealRotate }} className="pointer-events-none absolute left-1/2 top-[46%] aspect-square w-[min(92vw,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-accent)]/15">
+        <span className="absolute inset-[9%] rounded-full border border-dashed border-[var(--color-accent)]/20" />
+        <span className="absolute left-1/2 top-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-accent)] shadow-[0_0_18px_4px_rgb(217_180_90/0.6)]" />
+      </motion.div>
+
+      <div className="relative flex flex-1 flex-col items-center justify-center gap-6 px-4">
+        <motion.img
+          src="/brand/logo-mark.png" alt="" width={88} height={88}
+          initial={reduce ? false : { opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="size-16 drop-shadow-[0_0_24px_rgb(217_180_90/0.45)] sm:size-22"
+        />
+        <motion.p aria-hidden style={{ opacity: fade, letterSpacing: spread }} className="flex select-none font-[family-name:var(--font-serif)] uppercase leading-[0.85] drop-shadow-[0_6px_40px_rgb(217_180_90/0.28)]">
+          {LETTERS.map((l, i) => (
+            <span key={i} className="overflow-hidden pb-[0.06em]">
+              <motion.span
+                initial={reduce ? false : { y: "105%" }} animate={{ y: "0%" }}
+                transition={{ duration: 1.1, delay: 0.15 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="rz-gold block"
+                style={{ fontSize: "clamp(4.4rem, 19vw, 19rem)" }}
+              >
+                {l}
+              </motion.span>
+            </span>
+          ))}
         </motion.p>
-        <motion.div style={{ scale, y }} className="absolute grid aspect-square w-[min(38vw,22rem)] place-items-center rounded-full bg-white shadow-[0_0_0_6px_var(--color-ink),0_0_0_8px_rgb(217_180_90/0.7),0_40px_120px_-20px_rgb(217_180_90/0.35)]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={product.images[0]} alt={product.title} className="size-[78%] rounded-full object-contain mix-blend-multiply" />
-        </motion.div>
+        <motion.p
+          initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
+          className="text-center font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.45em] text-[var(--color-muted)] sm:text-xs"
+        >
+          Everyday luxe · Delivered
+        </motion.p>
       </div>
+
       <div className="container-x grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-4 pb-8 text-[10px] sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:text-xs">
-        <p className="font-[family-name:var(--font-serif)] text-lg italic text-[var(--color-accent)] leading-tight sm:text-2xl">Find it once.<br />Love it daily.</p>
-        <p aria-hidden className="hidden flex-col items-center gap-2 sm:flex font-[family-name:var(--font-mono)] tracking-[0.3em]">
+        <p className="font-[family-name:var(--font-serif)] text-lg italic leading-tight text-[var(--color-accent)] sm:text-2xl">Find it once.<br />Love it daily.</p>
+        <p aria-hidden className="hidden flex-col items-center gap-2 font-[family-name:var(--font-mono)] tracking-[0.3em] sm:flex">
           <span className="text-[var(--color-muted)]">SCROLL</span><span className="h-8 w-px animate-pulse bg-[var(--color-accent)]" />
         </p>
         <p className="text-right font-[family-name:var(--font-mono)] uppercase leading-relaxed tracking-[0.14em] text-[var(--color-muted)] sm:tracking-[0.18em]">
