@@ -72,7 +72,10 @@ export function EditorialHero({ featured, productCount, categoryCount }: Props) 
               <textPath href="#seal-path">NEW IN • BUNDLE &amp; SAVE • RIZZOVA •</textPath>
             </text>
           </svg>
-          <span className="absolute inset-0 grid place-items-center font-[family-name:var(--font-poster)] text-3xl text-[var(--color-accent-ink)]">R</span>
+          <span className="absolute inset-0 grid place-items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-mark.png" alt="" className="size-14 rounded-full bg-[var(--color-accent-ink)] p-1.5" />
+          </span>
         </div>
 
         <Link

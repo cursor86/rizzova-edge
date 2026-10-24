@@ -6,7 +6,11 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-white/10">
       <div className="container-x grid gap-8 py-12 sm:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div>
-          <p className="font-[family-name:var(--font-display)] text-lg font-bold">RIZZ<span className="text-[var(--color-accent)]">OVA</span></p>
+          <p className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-mark.png" alt="" width={40} height={40} className="size-10" />
+            <span className="font-[family-name:var(--font-serif)] text-2xl uppercase tracking-[0.28em] text-[var(--color-accent)]">Rizzova</span>
+          </p>
           <p className="mt-2 max-w-xs text-sm text-[var(--color-muted)]">Everyday finds, delivered across Australia and New Zealand.</p>
         </div>
         <nav aria-label="Help">

@@ -29,11 +29,11 @@ export function Spotlight({ product, index = 1 }: { product: Product; index?: nu
   };
 
   return (
-    <section ref={ref} aria-labelledby={`spot-${product.id}`} className="relative overflow-hidden bg-[var(--color-sage)] text-[var(--color-paper-ink)]">
+    <section ref={ref} aria-labelledby={`spot-${product.id}`} className="relative overflow-hidden bg-[var(--color-sage)] text-[var(--color-fg)]">
       <motion.p
         aria-hidden
         style={{ x: wordX }}
-        className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 whitespace-nowrap font-[family-name:var(--font-poster)] uppercase leading-none text-white/45"
+        className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 whitespace-nowrap font-[family-name:var(--font-poster)] uppercase leading-none text-[var(--color-accent)]/15"
       >
         <span style={{ fontSize: "clamp(7rem, 24vw, 22rem)" }}>{word}</span>
       </motion.p>
@@ -54,13 +54,13 @@ export function Spotlight({ product, index = 1 }: { product: Product; index?: nu
 
         <div className="md:justify-self-end">
           {variant && (
-            <div className="flex items-center gap-3 rounded-[var(--radius-control)] border-2 border-[var(--color-paper-ink)] bg-white p-2 pl-4 shadow-[5px_5px_0_0_var(--color-paper-ink)]">
+            <div className="flex items-center gap-3 rounded-[var(--radius-control)] border-2 border-[var(--color-accent)] bg-[var(--color-ink)] p-2 pl-4 shadow-[5px_5px_0_0_var(--color-accent)]">
               <div className="min-w-0">
                 <p className="max-w-40 truncate text-sm font-semibold">{variantLabel(variant) === "Standard" ? "Add to your bag" : variantLabel(variant)}</p>
                 <p className="font-[family-name:var(--font-mono)] text-sm">
                   {formatMoney(variant.priceCents, product.currency)}
                   {variant.compareAtCents && variant.compareAtCents > variant.priceCents && (
-                    <s className="ml-2 text-[var(--color-paper-ink)]/50">{formatMoney(variant.compareAtCents, product.currency)}</s>
+                    <s className="ml-2 text-[var(--color-muted)]">{formatMoney(variant.compareAtCents, product.currency)}</s>
                   )}
                 </p>
               </div>
@@ -69,7 +69,7 @@ export function Spotlight({ product, index = 1 }: { product: Product; index?: nu
                 onClick={onAdd}
                 disabled={variant.stock <= 0}
                 aria-label={`Add ${product.title} to bag`}
-                className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--color-paper-ink)] px-4 text-sm font-semibold text-white transition-transform active:scale-95 disabled:opacity-40"
+                className="flex h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 text-sm font-semibold text-[var(--color-accent-ink)] transition-transform active:scale-95 disabled:opacity-40"
               >
                 {added ? <><Check className="size-4" aria-hidden /> Added</> : <><ShoppingBag className="size-4" aria-hidden /> Add to bag</>}
               </button>

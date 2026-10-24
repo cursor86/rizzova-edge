@@ -19,8 +19,10 @@ export function SiteHeader() {
     <>
       <header className="glass-strong sticky top-0 z-40 border-x-0 border-t-0">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
-          <Link href="/" className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight" aria-label="Rizzova home">
-            RIZZ<span className="text-[var(--color-accent)]">OVA</span>
+          <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="Rizzova home">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-mark.png" alt="" width={36} height={36} className="size-9" />
+            <span className="hidden font-[family-name:var(--font-serif)] text-xl uppercase tracking-[0.28em] text-[var(--color-accent)] sm:inline">Rizzova</span>
           </Link>
           <nav aria-label="Primary" className="hidden gap-5 text-sm text-[var(--color-muted)] md:flex">
             {["home", "pets", "kids", "tech", "fashion"].map((c) => (

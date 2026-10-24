@@ -2,12 +2,12 @@
 
 /* Design tokens: dark glass surfaces + neo-brutalist accents. Mirrored for JS motion in lib/tokens.ts. */
 @theme {
-  --color-ink: #0a0b0e;
-  --color-ink-2: #12141a;
+  --color-ink: #120a1f;      /* Rizzova deep purple-black */
+  --color-ink-2: #1c1030;
   --color-fg: #eef0f3;
-  --color-muted: #9aa1ad;
-  --color-accent: #ffb547;      /* warm amber: primary actions */
-  --color-accent-ink: #1a1203;  /* text on accent */
+  --color-muted: #ad9fc4;
+  --color-accent: #d9b45a;      /* Rizzova gold: primary actions */
+  --color-accent-ink: #1e0f33;  /* deep purple text on gold */
   --color-signal: #7ce0c3;      /* positive: savings, in stock */
   --color-warn: #ffcf70;
   --color-danger: #ff7a6b;
@@ -19,7 +19,7 @@
   --font-serif: var(--font-iserif), Georgia, serif;                        /* italic accents */
   --color-paper: #e9e8e1;     /* light editorial sections */
   --color-paper-ink: #121212;
-  --color-sage: #a9bfa4;      /* spotlight field */
+  --color-sage: #2a1645;      /* spotlight field: royal purple */
 
   --radius-chip: 999px;
   --radius-card: 22px;
@@ -38,7 +38,7 @@
   border: 1px solid rgb(255 255 255 / 0.11);
 }
 @utility glass-strong {
-  background: rgb(20 22 28 / 0.72);
+  background: rgb(26 14 44 / 0.74);
   -webkit-backdrop-filter: blur(28px) saturate(150%);
   backdrop-filter: blur(28px) saturate(150%);
   border: 1px solid rgb(255 255 255 / 0.16);
@@ -60,8 +60,8 @@
 html { color-scheme: dark; }
 body {
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgb(255 181 71 / 0.10), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgb(124 224 195 / 0.08), transparent 60%),
+    radial-gradient(1200px 600px at 10% -10%, rgb(217 180 90 / 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgb(140 70 210 / 0.22), transparent 60%),
     var(--color-ink);
   color: var(--color-fg);
   font-family: var(--font-sans);

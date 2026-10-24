@@ -1,3 +1,4 @@
+import { BrandFilm } from "@/components/editorial/brand-film";
 import { Collage } from "@/components/editorial/collage";
 import { EditorialHero } from "@/components/editorial/editorial-hero";
 import { Marquee } from "@/components/editorial/marquee";
@@ -57,6 +58,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {banner}
       {featured && <EditorialHero featured={featured} productCount={shown.length} categoryCount={categoryCount} />}
       <Marquee items={ribbon} tone="accent" tilt={-2} />
+      <BrandFilm />
       {centre && <Collage centre={centre} satellites={rest.slice(0, 6)} />}
       <Marquee items={["Kitchen", "Play", "Sleep", "Travel", "Pets", "Gifts"]} tone="ink" tilt={1.5} durationSeconds={36} />
       {spotlight && <Spotlight product={spotlight} index={1} />}
