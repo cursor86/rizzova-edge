@@ -1,4 +1,6 @@
 import { BrandFilm } from "@/components/editorial/brand-film";
+import { ExploreTiles, tilesFrom } from "@/components/quiet/explore-tiles";
+import { FreshFinds } from "@/components/quiet/fresh-finds";
 import { DeliveryBand } from "@/components/quiet/delivery-band";
 import { HowItWorks } from "@/components/quiet/how-it-works";
 import { InsideTabs, type Shelf } from "@/components/quiet/inside-tabs";
@@ -55,6 +57,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     <div className="-mb-24">
       {banner}
       <QuietHero />
+      <ExploreTiles tiles={tilesFrom(shown)} />
+      <FreshFinds products={shown.slice(3, 15)} />
       {picks.length > 0 && <PicksCarousel products={picks} section={1} />}
       <DeliveryBand section={2} />
       {cats.length > 0 && <InsideTabs shelves={cats} section={3} />}
