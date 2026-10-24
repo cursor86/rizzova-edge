@@ -5,6 +5,8 @@ import type { Env } from "../env";
  * idempotent: an existing id returns a conflict, which we treat as success.
  */
 export async function uploadImageFromUrl(env: Env, sourceUrl: string, customId: string): Promise<string> {
+  // Without Cloudflare Images configured, keep the supplier URL (free; Images is a paid add-on).
+  if (!env.CF_IMAGES_API_TOKEN || !env.CF_IMAGES_ACCOUNT_HASH) return sourceUrl.split("?")[0] ?? sourceUrl;
   const form = new FormData();
   form.set("url", sourceUrl);
   form.set("id", customId);
@@ -28,5 +30,6 @@ export async function imageIdFor(aeProductId: string, sourceUrl: string): Promis
   return `ae-${aeProductId}-${hex}`;
 }
 
+/** Delivery URL: Cloudflare Images id, or a stored supplier URL when Images is not in use. */
 export const imageUrl = (env: Env, imageId: string, variant = "public") =>
-  `https://imagedelivery.net/${env.CF_IMAGES_ACCOUNT_HASH}/${imageId}/${variant}`;
+  imageId.startsWith("https://") ? imageId : `https://imagedelivery.net/${env.CF_IMAGES_ACCOUNT_HASH}/${imageId}/${variant}`;
