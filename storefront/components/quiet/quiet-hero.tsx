@@ -3,9 +3,7 @@
 import { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 
-const LETTERS = "RIZZOVA".split("");
-
-/** Full-screen opening: the gold wordmark rises letter by letter, a light sweeps across it, and it spreads apart as you scroll. */
+/** Full-screen opening: the gold wordmark rises and draws together, a light sweeps across it, and it spreads apart as you scroll. */
 export function QuietHero() {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
@@ -30,19 +28,16 @@ export function QuietHero() {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           className="size-16 drop-shadow-[0_0_24px_rgb(217_180_90/0.45)] sm:size-22"
         />
-        <motion.p aria-hidden style={{ opacity: fade, letterSpacing: spread }} className="flex select-none font-[family-name:var(--font-serif)] uppercase leading-[0.85] drop-shadow-[0_6px_40px_rgb(217_180_90/0.28)]">
-          {LETTERS.map((l, i) => (
-            <span key={i} className="overflow-hidden pb-[0.06em]">
-              <motion.span
-                initial={reduce ? false : { y: "105%" }} animate={{ y: "0%" }}
-                transition={{ duration: 1.1, delay: 0.15 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="rz-gold block"
-                style={{ fontSize: "clamp(4.4rem, 19vw, 19rem)" }}
-              >
-                {l}
-              </motion.span>
-            </span>
-          ))}
+        <motion.p aria-hidden style={{ opacity: fade, letterSpacing: spread }} className="select-none font-[family-name:var(--font-serif)] uppercase leading-[0.85]">
+          <motion.span
+            initial={reduce ? false : { opacity: 0, y: 40, letterSpacing: "0.25em" }}
+            animate={{ opacity: 1, y: 0, letterSpacing: "0em" }}
+            transition={{ duration: 1.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="rz-gold block pb-[0.06em]"
+            style={{ fontSize: "clamp(4.4rem, 26vw, 19rem)" }}
+          >
+            Rizzova
+          </motion.span>
         </motion.p>
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
