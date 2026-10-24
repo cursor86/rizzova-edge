@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Anton, Instrument_Sans, Instrument_Serif, JetBrains_Mono, Unbounded } from "next/font/google";
 import { CartProvider } from "@/context/cart-context";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const display = Unbounded({ subsets: ["latin"], variable: "--font-unbounded", weight: ["500", "700"] });
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main id="main" className="pb-24">
             {children}
           </main>
+          <SiteFooter />
         </CartProvider>
       </body>
     </html>
