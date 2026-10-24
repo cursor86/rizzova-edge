@@ -54,7 +54,7 @@ async function fulfilOrder(env: Env, token: string, orderId: string) {
   const aeOrderIds = await placeDsOrder(env, token, {
     outOrderId: order.order_number,
     address: {
-      fullName: order.shipping_name ?? "", phone: (order.shipping_phone ?? "").replace(/[^\d]/g, ""), phoneCountry: addr.country === "AU" ? "+61" : "",
+      fullName: order.shipping_name ?? "", phone: (order.shipping_phone ?? "").replace(/[^\d]/g, ""), phoneCountry: ({ AU: "+61", US: "+1", AE: "+971", NZ: "+64" } as Record<string, string>)[addr.country] ?? "",
       line1: addr.line1, line2: addr.line2 ?? undefined, city: addr.city ?? "", province: addr.state ?? "", zip: addr.postal_code ?? "", country: addr.country,
     },
     items: items.map((i) => ({ aeProductId: i.ae_product_id, skuAttr: i.ae_sku_attr, quantity: i.quantity })),

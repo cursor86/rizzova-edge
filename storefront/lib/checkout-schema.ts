@@ -1,12 +1,13 @@
 import { z } from "zod";
 
-export const COUNTRIES = { AU: "Australia", NZ: "New Zealand" } as const;
+export const COUNTRIES = { AU: "Australia", US: "United States", AE: "United Arab Emirates" } as const;
 export type CountryCode = keyof typeof COUNTRIES;
 
-/** Delivery routing per destination. Times are estimates; the tracking email confirms the real date. */
-export const SHIPPING_ROUTES: Record<CountryCode, { method: string; estimate: string; priceCents: number }> = {
-  AU: { method: "Tracked standard", estimate: "Estimated 10–20 business days", priceCents: 0 },
-  NZ: { method: "Tracked standard", estimate: "Estimated 12–25 business days", priceCents: 0 },
+/** Postcode rules per country. The UAE has no postcodes, so it is optional there. */
+const POSTCODE: Record<CountryCode, { test: (v: string) => boolean; message: string }> = {
+  AU: { test: (v) => /^\d{4}$/.test(v), message: "Australian postcodes have 4 digits" },
+  US: { test: (v) => /^\d{5}(-\d{4})?$/.test(v), message: "Enter a 5-digit ZIP code" },
+  AE: { test: (v) => v === "" || /^[\w -]{2,10}$/.test(v), message: "Leave blank or enter a valid PO box" },
 };
 
 export const contactSchema = z.object({
@@ -22,9 +23,12 @@ export const deliverySchema = z
     city: z.string().trim().min(2, "Enter a suburb or city").max(80),
     state: z.string().trim().min(2, "Enter a state or region").max(80),
     postalCode: z.string().trim(),
-    country: z.enum(["AU", "NZ"], { message: "We deliver to Australia and New Zealand" }),
+    country: z.enum(["AU", "US", "AE"], { message: "We deliver to Australia, the United States and the UAE" }),
   })
-  .refine((d) => /^\d{4}$/.test(d.postalCode), { message: "Postcodes have 4 digits", path: ["postalCode"] });
+  .superRefine((d, ctx) => {
+    const rule = POSTCODE[d.country];
+    if (!rule.test(d.postalCode)) ctx.addIssue({ code: "custom", message: rule.message, path: ["postalCode"] });
+  });
 
 export const lineSchema = z.object({
   variantId: z.number().int().positive(),
@@ -36,6 +40,7 @@ export const checkoutRequestSchema = z.object({
   contact: contactSchema,
   delivery: deliverySchema,
   lines: z.array(lineSchema).min(1, "Your cart is empty").max(50),
+  shippingMethod: z.enum(["standard", "express"]).default("standard"),
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

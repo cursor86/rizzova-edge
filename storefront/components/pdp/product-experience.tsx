@@ -96,7 +96,7 @@ export function ProductExperience({ product, complements }: { product: Product; 
         <span className="sr-only" aria-live="polite">{added ? `${qty} ${product.title} added to cart` : ""}</span>
 
         <ul className="mt-5 grid gap-2 text-sm text-[var(--color-muted)]">
-          <li className="flex items-center gap-2"><Truck className="size-4" aria-hidden /> Tracked delivery to Australia and New Zealand</li>
+          <li className="flex items-center gap-2"><Truck className="size-4" aria-hidden /> Free delivery to Australia and the US · UAE A$5</li>
           <li className="flex items-center gap-2"><ShieldCheck className="size-4" aria-hidden /> Secure payment by Stripe</li>
           <li className="flex items-center gap-2"><RotateCcw className="size-4" aria-hidden /> See our returns policy before you buy</li>
         </ul>

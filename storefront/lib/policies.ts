@@ -47,13 +47,16 @@ export const POLICIES: Policy[] = [
   {
     slug: "shipping",
     title: "Shipping & Delivery",
-    intro: "We deliver to Australia and New Zealand.",
+    intro: "We deliver to Australia, the United States and the United Arab Emirates.",
     sections: [
       { heading: "Delivery times", body: [
-        "Items ship from our supplier's warehouses, mostly overseas. Estimated delivery is 10–20 business days to Australia and 12–25 business days to New Zealand after dispatch. These are estimates, not guarantees; holidays and customs can add time.",
+        "Items ship from our supplier's warehouses, mostly overseas. Estimated delivery is 2–3 weeks after dispatch. This is an estimate, not a guarantee; holidays and customs can add time.",
         "Orders containing several items may arrive in separate parcels.",
       ] },
-      { heading: "Shipping cost", body: ["Standard tracked shipping is shown at checkout before you pay."] },
+      { heading: "Shipping cost", body: [
+        "Delivery is free to Australia and the United States. Delivery to the United Arab Emirates is A$5.",
+        "The delivery charge is shown at checkout before you pay. Some products may not ship to every country; checkout will tell you if so.",
+      ] },
       { heading: "Tracking", body: [
         "When your order is dispatched we email you a tracking number. Tracking can take a few days to show movement.",
       ] },

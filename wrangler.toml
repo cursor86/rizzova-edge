@@ -20,7 +20,7 @@ PRICE_MARKUP = "2.2"            # retail = AliExpress cost x markup, rounded to 
 COMPARE_AT_MARKUP = "1.3"       # compare-at = retail x this (0 disables)
 PUBLIC_SITE_URL = "https://rizzova-storefront.rizzdigital.workers.dev"
 CF_IMAGES_ACCOUNT_HASH = ""   # empty = no Cloudflare Images; product photos are served from the supplier CDN
-CHECKOUT_COUNTRIES = "AU,NZ"
+CHECKOUT_COUNTRIES = "AU,US,AE"
 
 # Secrets (set with `wrangler secret put NAME`, never in this file):
 #   AE_APP_KEY, AE_APP_SECRET, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,

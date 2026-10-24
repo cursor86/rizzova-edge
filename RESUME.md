@@ -4,7 +4,7 @@ Updated 24 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzo
 
 ## Live
 - **Storefront (preview):** https://rizzova-storefront.rizzdigital.workers.dev
-  - Next.js 16.4.2 in `storefront/`, purple/gold Rizzova brand, editorial home, policy pages.
+  - Next.js 16.4.2 in `storefront/`, purple/gold Rizzova brand, minimalist home (`components/quiet/`, drinkstill.nz style), policy pages.
   - Preview mode reads the rizzova.com WooCommerce feed (cached in KV). Checkout is a demo.
   - Deploy: `cd storefront && CLOUDFLARE_API_TOKEN=proxy-injected CLOUDFLARE_ACCOUNT_ID=bee7d2e080270ecebe14549aecd7db36 ./scripts/deploy-preview.sh`
     (assets go to KV because Wrangler's asset upload fails behind the session proxy).
@@ -28,7 +28,10 @@ Updated 24 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzo
 ## To do (in order)
 1. Connect AliExpress (above), then import 3–5 test products via `POST /admin/import` and check prices, photos and variants.
 2. Black Friday (27 Nov): pull promo feeds, shortlist products, get the owner's approval, import.
-3. Shipping cost: currently free with estimates; decide on a flat rate or `ds.freight.query`.
+3. Shipping: AU and US free (2–3 weeks), UAE A$5, charged on the server (`src/lib/shipping.ts`, copied in `storefront/lib/shipping.ts`).
+   Express A$15 (about 1 week) is built but off (`EXPRESS_ENABLED = false`): the test product has one AU service only
+   (Cainiao standard 6–10 days, about A$3) and no US/UAE delivery. Turn it on once products with faster services are imported.
+   Products must also be checked with `ds.freight.query` for each country before import.
 4. Stripe: the owner adds `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` in Cloudflare; webhook URL `/webhooks/stripe`.
 5. Point the storefront at the backend (`RIZZOVA_API_URL`), then take real orders.
 6. Hostinger WooCommerce shop stays live until then (paid until 20 Aug 2027).

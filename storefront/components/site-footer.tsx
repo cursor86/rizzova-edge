@@ -11,7 +11,7 @@ export function SiteFooter() {
             <img src="/brand/logo-mark.png" alt="" width={40} height={40} className="size-10" />
             <span className="font-[family-name:var(--font-serif)] text-2xl uppercase tracking-[0.28em] text-[var(--color-accent)]">Rizzova</span>
           </p>
-          <p className="mt-2 max-w-xs text-sm text-[var(--color-muted)]">Everyday finds, delivered across Australia and New Zealand.</p>
+          <p className="mt-2 max-w-xs text-sm text-[var(--color-muted)]">Everyday finds, delivered to Australia, the US and the UAE.</p>
         </div>
         <nav aria-label="Help">
           <h2 className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-widest text-[var(--color-muted)]">Help</h2>

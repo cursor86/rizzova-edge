@@ -6,10 +6,11 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, Loader2, Lock } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import {
-  COUNTRIES, SHIPPING_ROUTES, contactSchema, deliverySchema, fieldErrors,
+  COUNTRIES, contactSchema, deliverySchema, fieldErrors,
   type CheckoutResponse, type ContactInput, type CountryCode, type DeliveryInput,
 } from "@/lib/checkout-schema";
 import { formatMoney } from "@/lib/money";
+import { shippingOption, shippingOptions, type ShippingMethod } from "@/lib/shipping";
 import { track } from "@/lib/telemetry";
 import { spring } from "@/lib/tokens";
 import { Field } from "./field";
@@ -27,6 +28,7 @@ export function CheckoutForm() {
   const [step, setStep] = useState<Step>(0);
   const [contact, setContact] = useState<ContactInput>(emptyContact);
   const [delivery, setDelivery] = useState<DeliveryInput>(emptyDelivery);
+  const [method, setMethod] = useState<ShippingMethod>("standard");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CheckoutResponse | null>(null);
@@ -39,8 +41,10 @@ export function CheckoutForm() {
     headingRef.current?.focus();
   }, [step]);
 
-  const route = SHIPPING_ROUTES[delivery.country as CountryCode];
-  const grandTotal = totals.totalCents + route.priceCents;
+  const options = shippingOptions(delivery.country);
+  const route = shippingOption(delivery.country, method) ?? options[0]!;
+  const priceLabel = (cents: number) => (cents === 0 ? "Free" : formatMoney(cents, CURRENCY));
+  const grandTotal = totals.totalCents + route.cents;
 
   const fail = (stepName: string, errs: Record<string, string>) => {
     setErrors(errs);
@@ -73,6 +77,7 @@ export function CheckoutForm() {
           contact,
           delivery: { ...delivery, line2: delivery.line2 || undefined },
           lines: lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity, ...(l.bundleId ? { bundleId: l.bundleId } : {}) })),
+          shippingMethod: route.id,
         }),
       });
       const body = (await res.json()) as CheckoutResponse;
@@ -154,16 +159,25 @@ export function CheckoutForm() {
                 <Field name="line2" label="Apartment, unit (optional)" autoComplete="address-line2" value={delivery.line2 ?? ""} onChange={(e) => setD("line2", e.target.value)} error={errors.line2} className="sm:col-span-2" />
                 <Field name="city" label="Suburb / city" autoComplete="address-level2" value={delivery.city} onChange={(e) => setD("city", e.target.value)} error={errors.city} />
                 <Field name="state" label="State / region" autoComplete="address-level1" value={delivery.state} onChange={(e) => setD("state", e.target.value)} error={errors.state} />
-                <Field name="postalCode" label="Postcode" inputMode="numeric" autoComplete="postal-code" value={delivery.postalCode} onChange={(e) => setD("postalCode", e.target.value)} error={errors.postalCode} />
+                <Field name="postalCode" label={delivery.country === "US" ? "ZIP code" : delivery.country === "AE" ? "PO box (optional)" : "Postcode"} inputMode={delivery.country === "AE" ? "text" : "numeric"} autoComplete="postal-code" value={delivery.postalCode} onChange={(e) => setD("postalCode", e.target.value)} error={errors.postalCode} />
                 <div className="grid gap-1.5">
                   <label htmlFor="f-country" className="text-sm text-[var(--color-muted)]">Country</label>
                   <select id="f-country" name="country" autoComplete="country" value={delivery.country} onChange={(e) => setD("country", e.target.value)} className="glass h-11 rounded-[var(--radius-control)] px-3 text-[15px] outline-none focus:border-[var(--color-accent)]">
                     {(Object.keys(COUNTRIES) as CountryCode[]).map((c) => <option key={c} value={c} className="bg-[var(--color-ink-2)]">{COUNTRIES[c]}</option>)}
                   </select>
                 </div>
-                <p className="rounded-2xl border border-white/10 px-3 py-2.5 text-sm sm:col-span-2" aria-live="polite">
-                  <span className="font-semibold">{route.method}</span> · {route.estimate} · {route.priceCents === 0 ? "Free" : formatMoney(route.priceCents, CURRENCY)}
-                </p>
+                <fieldset className="grid min-w-0 gap-2 sm:col-span-2">
+                  <legend className="mb-1 text-sm text-[var(--color-muted)]">Delivery</legend>
+                  {options.map((o) => (
+                    <label key={o.id} className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border-2 px-3 py-2.5 text-sm ${route.id === o.id ? "border-[var(--color-accent)]" : "border-white/10"}`}>
+                      <span className="flex items-center gap-2.5">
+                        <input type="radio" name="shippingMethod" value={o.id} checked={route.id === o.id} onChange={() => setMethod(o.id)} className="accent-[var(--color-accent)]" />
+                        <span><span className="font-semibold">{o.label}</span> · {o.estimate}</span>
+                      </span>
+                      <span className="font-[family-name:var(--font-mono)]">{priceLabel(o.cents)}</span>
+                    </label>
+                  ))}
+                </fieldset>
               </>
             )}
             {step === 2 && (
@@ -173,7 +187,7 @@ export function CheckoutForm() {
                   <dt className="text-[var(--color-muted)]">Deliver to</dt>
                   <dd className="text-right">{delivery.name}<br />{delivery.line1}{delivery.line2 ? `, ${delivery.line2}` : ""}<br />{delivery.city} {delivery.state} {delivery.postalCode}<br />{COUNTRIES[delivery.country as CountryCode]}</dd>
                 </div>
-                <div className="flex justify-between gap-4"><dt className="text-[var(--color-muted)]">Shipping</dt><dd className="text-right">{route.method}, {route.estimate.toLowerCase()}</dd></div>
+                <div className="flex justify-between gap-4"><dt className="text-[var(--color-muted)]">Shipping</dt><dd className="text-right">{route.label}, {route.estimate} · {priceLabel(route.cents)}</dd></div>
               </dl>
             )}
           </motion.div>
@@ -217,7 +231,7 @@ export function CheckoutForm() {
         <dl className="mt-4 space-y-1.5 border-t border-white/10 pt-4 text-sm">
           <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-[family-name:var(--font-mono)]">{formatMoney(totals.subtotalCents, CURRENCY)}</dd></div>
           {totals.bundleSavingsCents > 0 && <div className="flex justify-between text-[var(--color-signal)]"><dt>Bundle savings</dt><dd className="font-[family-name:var(--font-mono)]">−{formatMoney(totals.bundleSavingsCents, CURRENCY)}</dd></div>}
-          <div className="flex justify-between"><dt>Shipping</dt><dd className="font-[family-name:var(--font-mono)]">{route.priceCents === 0 ? "Free" : formatMoney(route.priceCents, CURRENCY)}</dd></div>
+          <div className="flex justify-between"><dt>Shipping</dt><dd className="font-[family-name:var(--font-mono)]">{priceLabel(route.cents)}</dd></div>
           <div className="flex justify-between pt-1 text-base font-semibold"><dt>Total</dt><dd className="font-[family-name:var(--font-mono)]">{formatMoney(grandTotal, CURRENCY)}</dd></div>
         </dl>
         <p className="mt-4 flex items-center gap-2 text-xs text-[var(--color-muted)]"><Lock className="size-3" aria-hidden /> Card details are entered on Stripe&apos;s secure page, never on this site.</p>

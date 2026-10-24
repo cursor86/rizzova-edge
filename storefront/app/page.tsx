@@ -1,22 +1,23 @@
 import { BrandFilm } from "@/components/editorial/brand-film";
-import { Collage } from "@/components/editorial/collage";
-import { EditorialHero } from "@/components/editorial/editorial-hero";
-import { Marquee } from "@/components/editorial/marquee";
-import { SplitFeature, type CategoryFeature } from "@/components/editorial/split-feature";
-import { Spotlight } from "@/components/editorial/spotlight";
+import { DeliveryBand } from "@/components/quiet/delivery-band";
+import { HowItWorks } from "@/components/quiet/how-it-works";
+import { InsideTabs, type Shelf } from "@/components/quiet/inside-tabs";
+import { PicksCarousel } from "@/components/quiet/picks-carousel";
+import { QuietHero } from "@/components/quiet/quiet-hero";
 import { ProductGrid } from "@/components/product-grid";
 import { listProducts, previewSource } from "@/lib/catalog";
 import type { Product } from "@/lib/types";
 
 const withImage = (p: Product) => p.images.length > 0 && p.variants.some((v) => v.stock > 0);
 
-function topCategories(products: Product[], n: number): CategoryFeature[] {
+function shelves(products: Product[], n: number): Shelf[] {
   const byCat = new Map<string, Product[]>();
   for (const p of products) if (p.category) byCat.set(p.category, [...(byCat.get(p.category) ?? []), p]);
   return [...byCat.entries()]
+    .filter(([, list]) => list.length >= 4)
     .sort((a, b) => b[1].length - a[1].length)
     .slice(0, n)
-    .flatMap(([name, list]) => (list[0] ? [{ name, count: list.length, cover: list[0] }] : []));
+    .map(([name, list]) => ({ name, products: list }));
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
@@ -47,29 +48,28 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
 
   const shown = products.filter(withImage);
-  const [featured, centre, ...rest] = shown;
-  const categories = topCategories(shown, 2);
-  const categoryCount = new Set(shown.map((p) => p.category).filter(Boolean)).size;
-  const spotlight = rest.find((p) => /flask|tumbler|bottle|bag|lamp/i.test(p.title)) ?? rest[6];
-  const ribbon = [...topCategories(shown, 5).map((c) => c.name), "Bundle & save up to 15%"];
+  const [hero, ...rest] = shown;
+  const picks = rest.slice(0, 3);
+  const cats = shelves(shown, 5);
 
   return (
-    <>
+    <div className="-mb-24">
       {banner}
-      {featured && <EditorialHero featured={featured} productCount={shown.length} categoryCount={categoryCount} />}
-      <Marquee items={ribbon} tone="accent" tilt={-2} />
+      {hero && <QuietHero product={hero} />}
+      {picks.length > 0 && <PicksCarousel products={picks} section={1} />}
+      <DeliveryBand section={2} />
+      {cats.length > 0 && <InsideTabs shelves={cats} section={3} />}
+      <HowItWorks section={4} />
       <BrandFilm />
-      {centre && <Collage centre={centre} satellites={rest.slice(0, 6)} />}
-      <Marquee items={["Kitchen", "Play", "Sleep", "Travel", "Pets", "Gifts"]} tone="ink" tilt={1.5} durationSeconds={36} />
-      {spotlight && <Spotlight product={spotlight} index={1} />}
-      {categories.length === 2 && <SplitFeature features={categories} />}
-      <section id="the-edit" aria-labelledby="edit-h" className="container-x scroll-mt-24 space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/10 pb-5">
-          <h2 id="edit-h" className="font-[family-name:var(--font-poster)] text-6xl uppercase leading-none sm:text-8xl">The edit</h2>
-          <p className="max-w-xs font-[family-name:var(--font-serif)] text-xl italic text-[var(--color-muted)]">Hand-picked, restocked often, bundled for less.</p>
+      <section id="the-edit" aria-labelledby="edit-h" className="bg-[var(--color-paper)] py-24 text-[var(--color-paper-ink)] sm:py-32">
+        <div className="container-x space-y-10">
+          <p className="border-b border-black/15 pb-4 font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.2em]">05 / Everything</p>
+          <h2 id="edit-h" className="font-[family-name:var(--font-serif)] leading-none" style={{ fontSize: "clamp(3rem, 7vw, 6rem)" }}>The edit.</h2>
         </div>
-        <ProductGrid products={shown.slice(0, 24)} label="The edit" />
+        <div className="container-x mt-10 rounded-[var(--radius-panel)] bg-[var(--color-ink)] p-4 text-[var(--color-fg)] sm:p-6">
+          <ProductGrid products={shown.slice(0, 24)} label="The edit" />
+        </div>
       </section>
-    </>
+    </div>
   );
 }

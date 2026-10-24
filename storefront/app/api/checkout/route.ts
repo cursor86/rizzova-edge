@@ -30,7 +30,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!parsed.success) {
     return reply({ ok: false, code: "invalid", message: parsed.error.issues[0]?.message ?? "Invalid checkout details" }, 422);
   }
-  const { contact, delivery, lines } = parsed.data;
+  const { contact, delivery, lines, shippingMethod } = parsed.data;
 
   if (!API) {
     return reply({ ok: true, mode: "preview", orderNumber: `PREVIEW-${Date.now().toString(36).toUpperCase()}`, message: "Preview mode: no order was created and no payment was taken." }, 200);
@@ -62,6 +62,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       headers: { "content-type": "application/json", cookie },
       body: JSON.stringify({
         email: contact.email,
+        shippingMethod,
         shipping: { name: delivery.name, phone: contact.phone, line1: delivery.line1, line2: delivery.line2, city: delivery.city, state: delivery.state, postalCode: delivery.postalCode, country: delivery.country },
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),

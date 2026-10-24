@@ -4,6 +4,7 @@ import type { Env } from "../env";
 import { loadCart, MAX_LINES } from "./cart";
 import { now } from "../lib/util";
 import { bundleRate, discountedUnit } from "../lib/bundle";
+import { shippingOption } from "../lib/shipping";
 
 export const checkout = new Hono<{ Bindings: Env }>();
 
@@ -40,7 +41,7 @@ function parseShipping(v: unknown, allowed: string[]): ShippingInput | null {
  * Payment is confirmed only by the signed Stripe webhook, never by the redirect.
  */
 checkout.post("/", async (c) => {
-  const body = await c.req.json<{ email?: string; shipping?: unknown }>().catch(() => ({} as { email?: string; shipping?: unknown }));
+  const body = await c.req.json<{ email?: string; shipping?: unknown; shippingMethod?: unknown }>().catch(() => ({} as { email?: string; shipping?: unknown; shippingMethod?: unknown }));
   const allowedCountries = c.env.CHECKOUT_COUNTRIES.split(",").map((x) => x.trim()).filter(Boolean);
   const shipping = parseShipping(body.shipping, allowedCountries);
   const cart = await loadCart(c.env, getCookie(c, "rz_cart"));
@@ -77,6 +78,9 @@ checkout.post("/", async (c) => {
 
   const currency = c.env.STORE_CURRENCY;
   const subtotal = priced.reduce((s, p) => s + p.unit * p.line.quantity, 0);
+  // Delivery is priced on the server from the destination country and chosen method.
+  const delivery = shipping ? shippingOption(shipping.country, body.shippingMethod) : null;
+  const shippingCents = delivery?.cents ?? 0;
   const orderId = crypto.randomUUID();
   const orderNumber = await nextOrderNumber(c.env.DB);
   const t = now();
@@ -86,9 +90,9 @@ checkout.post("/", async (c) => {
     c.env.DB.prepare(
       `INSERT INTO orders (id, order_number, email, status, currency, subtotal_cents, shipping_cents, total_cents,
          shipping_name, shipping_phone, shipping_address_json, created_at, updated_at)
-       VALUES (?, ?, ?, 'pending', ?, ?, 0, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
-      orderId, orderNumber, email, currency, subtotal, subtotal,
+      orderId, orderNumber, email, currency, subtotal, shippingCents, subtotal + shippingCents,
       shipping?.name ?? null, shipping?.phone ?? null,
       shipping ? JSON.stringify({ line1: shipping.line1, line2: shipping.line2 ?? null, city: shipping.city, state: shipping.state, postal_code: shipping.postalCode, country: shipping.country }) : null,
       t, t,
@@ -131,6 +135,14 @@ checkout.post("/", async (c) => {
     form.set(`line_items[${i}][price_data][product_data][name]`, (rate > 0 ? `${v.title} (bundle -${Math.round(rate * 100)}%)` : v.title).slice(0, 250));
     form.set(`line_items[${i}][price_data][product_data][metadata][sku]`, v.sku);
   });
+  if (delivery && delivery.cents > 0) {
+    const i = priced.length;
+    form.set(`line_items[${i}][quantity]`, "1");
+    form.set(`line_items[${i}][price_data][currency]`, currency.toLowerCase());
+    form.set(`line_items[${i}][price_data][unit_amount]`, String(delivery.cents));
+    form.set(`line_items[${i}][price_data][product_data][name]`, `${delivery.label} (${delivery.estimate})`);
+  }
+  if (delivery) form.set("metadata[shipping_method]", delivery.id);
 
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",

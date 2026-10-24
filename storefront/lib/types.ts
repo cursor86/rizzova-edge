@@ -37,5 +37,5 @@ export interface ShippingAddress {
   city: string;
   state: string;
   postalCode: string;
-  country: "AU" | "NZ";
+  country: "AU" | "US" | "AE";
 }

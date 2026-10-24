@@ -14,7 +14,7 @@ const serif = Instrument_Serif({ subsets: ["latin"], variable: "--font-iserif", 
 
 export const metadata: Metadata = {
   title: { default: "Rizzova", template: "%s · Rizzova" },
-  description: "Home, pets, kids, tech and everyday finds, delivered across Australia and New Zealand.",
+  description: "Home, pets, kids, tech and everyday finds, delivered to Australia, the US and the UAE.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
