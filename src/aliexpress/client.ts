@@ -57,26 +57,26 @@ async function post(url: string, params: Record<string, string>): Promise<any> {
 /** System API, e.g. /auth/token/create, /auth/token/refresh. */
 export async function callSystem(env: Env, apiPath: string, apiParams: Params): Promise<any> {
   const params = clean({
-    app_key: env.AE_APP_KEY,
+    app_key: env.AE_APP_KEY.trim(),
     timestamp: Date.now(),
     sign_method: "sha256",
     ...apiParams,
   });
-  params.sign = await sign(env.AE_APP_SECRET, params, apiPath);
+  params.sign = await sign(env.AE_APP_SECRET.trim(), params, apiPath);
   return post(`${env.AE_GATEWAY}/rest${apiPath}`, params);
 }
 
 /** Business API, e.g. method=aliexpress.ds.product.get. Returns the `<method>_response` payload. */
 export async function callBusiness(env: Env, method: string, accessToken: string, apiParams: Params): Promise<any> {
   const params = clean({
-    app_key: env.AE_APP_KEY,
+    app_key: env.AE_APP_KEY.trim(),
     timestamp: Date.now(),
     sign_method: "sha256",
     method,
     access_token: accessToken,
     ...apiParams,
   });
-  params.sign = await sign(env.AE_APP_SECRET, params);
+  params.sign = await sign(env.AE_APP_SECRET.trim(), params);
   const body = await post(`${env.AE_GATEWAY}/sync`, params);
   const key = method.replace(/\./g, "_") + "_response";
   const payload = body[key];

@@ -1,6 +1,7 @@
 import { Hono, type MiddlewareHandler } from "hono";
 import type { Env } from "../env";
 import { safeEqual, now } from "../lib/util";
+import { callSystem, AliExpressError } from "../aliexpress/client";
 
 export const requireAdmin: MiddlewareHandler<{ Bindings: Env }> = async (c, next) => {
   const header = c.req.header("authorization") ?? "";
@@ -39,4 +40,26 @@ admin.get("/stats", async (c) => {
     c.env.DB.prepare(`SELECT aliexpress_product_id, sync_error FROM products WHERE sync_error IS NOT NULL LIMIT 20`),
   ]);
   return c.json({ products: r[0]?.results, importQueue: r[1]?.results?.[0], orders: r[2]?.results, syncErrors: r[3]?.results });
+});
+
+/**
+ * Signing self-test: calls /auth/token/create with a dummy code. A correct signature gets an
+ * "invalid code" style error back; a signing problem gets IncompleteSignature. Never returns secret values.
+ */
+admin.get("/ae-selftest", async (c) => {
+  const secret = c.env.AE_APP_SECRET ?? "";
+  const key = c.env.AE_APP_KEY ?? "";
+  const facts = {
+    appKeySet: key.trim().length > 0,
+    appKeyHadWhitespace: key !== key.trim(),
+    secretLength: secret.trim().length,
+    secretHadWhitespace: secret !== secret.trim(),
+  };
+  try {
+    await callSystem(c.env, "/auth/token/create", { code: "selftest-invalid-code" });
+    return c.json({ ...facts, result: "unexpected success" });
+  } catch (err) {
+    const e = err as AliExpressError;
+    return c.json({ ...facts, aliexpressCode: e.code, message: e.message, signatureOk: e.code !== "IncompleteSignature" });
+  }
 });
