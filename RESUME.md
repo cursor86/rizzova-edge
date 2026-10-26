@@ -2,6 +2,10 @@
 
 Updated 24 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzova-edge and continue."
 
+## Saving usage
+- graphify is set up (`CLAUDE.md`, `.claude/`): ask the code map first (`graphify query "..."`) instead of reading files.
+  A new cloud session installs graphify automatically. After code changes run `graphify update .` (free, no AI).
+
 ## Live
 - **Storefront (preview):** https://rizzova-storefront.rizzdigital.workers.dev
   - Next.js 16.4.2 in `storefront/`, purple/gold Rizzova brand, minimalist home (`components/quiet/`, drinkstill.nz style), policy pages.
