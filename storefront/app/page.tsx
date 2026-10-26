@@ -5,7 +5,7 @@ import { DeliveryBand } from "@/components/quiet/delivery-band";
 import { HowItWorks } from "@/components/quiet/how-it-works";
 import { InsideTabs, type Shelf } from "@/components/quiet/inside-tabs";
 import { PicksCarousel } from "@/components/quiet/picks-carousel";
-import { QuietHero } from "@/components/quiet/quiet-hero";
+import { HeroCollage } from "@/components/quiet/hero-collage";
 import { ProductGrid } from "@/components/product-grid";
 import { listProducts, previewSource } from "@/lib/catalog";
 import type { Product } from "@/lib/types";
@@ -50,13 +50,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
 
   const shown = products.filter(withImage);
-  const picks = shown.slice(0, 3);
+  // One product per category for the hero collage, so it shows the range.
+  const seen = new Set<string>();
+  const collage = shown.filter((p) => !/nee\s?doh/i.test(p.title) && !seen.has(p.category) && seen.add(p.category)).slice(0, 5);
+  const picks = shown.filter((p) => !collage.includes(p)).slice(0, 3);
   const cats = shelves(shown, 5);
 
   return (
     <div className="-mb-24">
       {banner}
-      <QuietHero />
+      <HeroCollage products={collage} />
       <ExploreTiles tiles={tilesFrom(shown)} />
       <FreshFinds products={shown.slice(3, 15)} />
       {picks.length > 0 && <PicksCarousel products={picks} section={1} />}
