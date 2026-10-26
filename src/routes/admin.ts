@@ -93,3 +93,37 @@ admin.get("/ae-probe", async (c) => {
     return c.json({ error: e.message, code: e.code }, 502);
   }
 });
+
+const STRIPE_EVENTS = ["checkout.session.completed", "checkout.session.async_payment_succeeded", "checkout.session.expired"];
+
+/**
+ * POST /admin/stripe/setup – creates the Stripe webhook for this Worker (replacing any old one at the same URL)
+ * and saves its signing secret in KV, so the owner only has to add STRIPE_SECRET_KEY.
+ */
+admin.post("/stripe/setup", async (c) => {
+  const key = c.env.STRIPE_SECRET_KEY;
+  if (!key) return c.json({ ok: false, error: "STRIPE_SECRET_KEY is not set on rizzova-edge" }, 400);
+  const url = `${new URL(c.req.url).origin}/webhooks/stripe`;
+  const stripe = (path: string, init?: RequestInit) =>
+    fetch(`https://api.stripe.com/v1${path}`, { ...init, headers: { authorization: `Bearer ${key}`, "content-type": "application/x-www-form-urlencoded" } });
+
+  const list = (await (await stripe("/webhook_endpoints?limit=100")).json()) as { data?: { id: string; url: string }[]; error?: { message: string } };
+  if (!list.data) return c.json({ ok: false, error: list.error?.message ?? "Stripe rejected the key" }, 400);
+  for (const old of list.data.filter((e) => e.url === url)) await stripe(`/webhook_endpoints/${old.id}`, { method: "DELETE" });
+
+  const form = new URLSearchParams({ url, description: "Rizzova orders (rizzova-edge)" });
+  STRIPE_EVENTS.forEach((e, i) => form.set(`enabled_events[${i}]`, e));
+  const created = (await (await stripe("/webhook_endpoints", { method: "POST", body: form })).json()) as { id?: string; secret?: string; livemode?: boolean; error?: { message: string } };
+  if (!created.id || !created.secret) return c.json({ ok: false, error: created.error?.message ?? "Could not create webhook" }, 502);
+  await c.env.KV.put("stripe:webhook_secret", created.secret);
+  return c.json({ ok: true, webhookId: created.id, url, mode: created.livemode ? "live" : "test", events: STRIPE_EVENTS });
+});
+
+/** GET /admin/stripe/status – which Stripe pieces are in place (never returns secret values). */
+admin.get("/stripe/status", async (c) => {
+  const key = c.env.STRIPE_SECRET_KEY ?? "";
+  return c.json({
+    secretKey: key ? (key.startsWith("sk_live_") || key.startsWith("rk_live_") ? "live" : "test") : "missing",
+    webhookSecret: c.env.STRIPE_WEBHOOK_SECRET ? "worker secret" : (await c.env.KV.get("stripe:webhook_secret")) ? "saved by setup" : "missing",
+  });
+});

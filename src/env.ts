@@ -14,6 +14,7 @@ export interface Env {
   PUBLIC_SITE_URL: string;
   CF_IMAGES_ACCOUNT_HASH: string;
   CHECKOUT_COUNTRIES: string;
+  AUTO_FULFIL: string;
 
   // Secrets
   AE_APP_KEY: string;

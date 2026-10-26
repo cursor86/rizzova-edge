@@ -1,6 +1,33 @@
 # Rizzova Edge – where we are (handover for a new session)
 
-Updated 24 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzova-edge and continue."
+Updated 27 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzova-edge and continue."
+
+## ⭐ Start here (next session)
+**Status:** shop, backend, AliExpress and Stripe (test mode) all work end to end.
+Test order RZ-240001 was paid with Stripe's test card, the webhook marked it `paid`, and the customer landed on `/order/<id>`.
+The storefront still *browses* the old rizzova.com catalogue (preview mode), because only 1 product is imported into D1.
+
+**Do next, in order:**
+1. **Import real products** into D1: pick Black Friday products (rules: 2.5–4x markup, supplier shipping ≤ ~$3, 4.7★+, 500+ orders,
+   ships to AU and US, no clothing sizes / fragile / liquids / loose batteries). Check each with `ds.freight.query` for AU, US, AE, then
+   `POST /admin/import {"productIds":[...]}`. Get the owner's OK on the list first.
+2. **Approve product copy** written by Rizz AI: `GET https://rizz-ai.rizzdigital.workers.dev/v1/product-copy` then
+   `POST /v1/product-copy/review {"approve":"all"}` (after a quick look).
+3. **Switch the storefront to live checkout:** set `RIZZOVA_API_URL=https://rizzova-edge.rizzdigital.workers.dev` on the
+   `rizzova-storefront` Worker and redeploy. The shop then lists D1 products and takes Stripe payments.
+4. **Go live with money:** owner swaps `STRIPE_SECRET_KEY` on rizzova-edge for the live key, then call `POST /admin/stripe/setup`
+   (creates the live webhook automatically). Set `AUTO_FULFIL = "on"` in wrangler.toml so paid live orders go to AliExpress.
+   Test-mode payments never place AliExpress orders.
+5. AliExpress app is in **Test** status (refresh token lasts ~2 days, auto-refreshed every 15 min). Apply for Online status.
+
+**Admin token:** never stored in the repo or chat. If you need one, make a new one (Cloudflare access is proxy-injected):
+`python3 -c "import secrets;print(secrets.token_urlsafe(32))" > /tmp/t; npx wrangler secret put ADMIN_TOKEN < /tmp/t;
+(cd rizz-ai && npx wrangler secret put RIZZ_AI_TOKEN < /tmp/t)` then use `Authorization: Bearer $(cat /tmp/t)`.
+Env for wrangler: `CLOUDFLARE_API_TOKEN=proxy-injected CLOUDFLARE_ACCOUNT_ID=bee7d2e080270ecebe14549aecd7db36`.
+
+**Stripe admin routes:** `GET /admin/stripe/status` (shows test/live/missing, never values), `POST /admin/stripe/setup`.
+
+**Owner prefers:** short answers, few screenshots (save usage), no fake reviews or "was" prices, zero spend without asking.
 
 ## Saving usage
 - graphify is set up (`CLAUDE.md`, `.claude/`): ask the code map first (`graphify query "..."`) instead of reading files.
@@ -45,7 +72,7 @@ Updated 24 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzo
    (Cainiao standard 6–10 days, about A$3) and no US/UAE delivery. Turn it on once products with faster services are imported.
    Products must also be checked with `ds.freight.query` for each country before import.
    Owner rule (24 Oct 2026): supplier shipping up to about $3 per order is fine; the margin absorbs it and delivery stays free to AU/US.
-4. Stripe: the owner adds `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` in Cloudflare; webhook URL `/webhooks/stripe`.
+4. Stripe: done in test mode (key set by owner, webhook created by `/admin/stripe/setup`, secret in KV).
 5. Point the storefront at the backend (`RIZZOVA_API_URL`), then take real orders.
 6. Hostinger WooCommerce shop stays live until then (paid until 20 Aug 2027).
 

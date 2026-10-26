@@ -1,8 +1,8 @@
 {
   ".claude/settings.json": {
-    "mtime": 1792985586.2743773,
-    "seen": 1792985595.5254302,
-    "ast_hash": "3b541b9935fcf0831355da956f897645",
+    "mtime": 1792985603.4729133,
+    "seen": 1793022342.1605785,
+    "ast_hash": "71de4b222760cc3b6e83d15ec0ab6760",
     "semantic_hash": ""
   },
   "package.json": {
@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "src/env.ts": {
-    "mtime": 1792768642.48733,
-    "seen": 1792985595.5254533,
-    "ast_hash": "ad12025d3b92e2e52b14782ecc04738c",
+    "mtime": 1793021771.2518737,
+    "seen": 1793022342.160839,
+    "ast_hash": "7085bea03d42c6e60fc01c63d6934976",
     "semantic_hash": ""
   },
   "src/index.ts": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "src/routes/admin.ts": {
-    "mtime": 1792839437.6170175,
-    "seen": 1792985595.5254643,
-    "ast_hash": "f6a10f345a4ad09d6649728d71363f38",
+    "mtime": 1793021722.1966882,
+    "seen": 1793022342.161102,
+    "ast_hash": "487fe8ee71d0f696267d55c70768d23f",
     "semantic_hash": ""
   },
   "src/routes/cart.ts": {
@@ -102,9 +102,9 @@
     "semantic_hash": ""
   },
   "src/routes/checkout.ts": {
-    "mtime": 1792841098.4176986,
-    "seen": 1792985595.5254667,
-    "ast_hash": "8e6de97d537fe82f081149b6d61e60e8",
+    "mtime": 1793022210.1663313,
+    "seen": 1793022342.1611362,
+    "ast_hash": "b12f5bb1bbbbe923cd0dee8162411638",
     "semantic_hash": ""
   },
   "src/routes/oauth.ts": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "src/routes/stripe.ts": {
-    "mtime": 1792769572.623145,
-    "seen": 1792985595.5254707,
-    "ast_hash": "9b1a53fa579195d731dc053fd82da2c9",
+    "mtime": 1793021771.2513604,
+    "seen": 1793022342.1611977,
+    "ast_hash": "b1a33a06fdc7d903bbd8342ff6c28345",
     "semantic_hash": ""
   },
   "storefront/app/(info)/[policy]/page.tsx": {
@@ -486,9 +486,9 @@
     "semantic_hash": ""
   },
   "RESUME.md": {
-    "mtime": 1792985554.7918184,
-    "seen": 1792985595.5255473,
-    "ast_hash": "49c523e71b5600614730ba231ee9d090",
+    "mtime": 1793022338.0306334,
+    "seen": 1793022342.1632626,
+    "ast_hash": "76b4dda2b4fbe40c8d8fb3bae2c253bf",
     "semantic_hash": ""
   },
   "storefront/README.md": {
@@ -525,6 +525,18 @@
     "mtime": 1792821843.349079,
     "seen": 1792985595.5255556,
     "ast_hash": "9149a5be9d2c6d495d6779d8059ed236",
+    "semantic_hash": ""
+  },
+  "storefront/app/order/[id]/clear-cart.tsx": {
+    "mtime": 1793022210.1758125,
+    "seen": 1793022342.1614132,
+    "ast_hash": "05da392f1d24047c864aa0031170553c",
+    "semantic_hash": ""
+  },
+  "storefront/app/order/[id]/page.tsx": {
+    "mtime": 1793022210.1691108,
+    "seen": 1793022342.1614163,
+    "ast_hash": "18cdf19e11d33ab5b1e22e27d3d0d6bd",
     "semantic_hash": ""
   }
 }

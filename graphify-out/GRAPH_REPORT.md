@@ -1,17 +1,17 @@
 # Graph Report - rizzova-edge  (2026-10-26)
 
 ## Corpus Check
-- 84 files · ~30,224 words
+- 86 files · ~31,160 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 9 file(s) not represented in the graph (top: .example 2, (none) 2, .toml 2)
 
 ## Summary
-- 484 nodes · 1040 edges · 20 communities (15 shown, 5 thin omitted)
+- 492 nodes · 1055 edges · 20 communities (16 shown, 4 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 9 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ccfba8d2`
+- Built from commit: `40d61d50`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -31,19 +31,19 @@
 - compilerOptions
 - Rizzova Edge – where we are (handover for a new session)
 - rizz-ai/tsconfig.json
-- marquee.tsx
+- react
 - CLAUDE.md
 - .claude/CLAUDE.md
 - deploy-preview.sh
 
 ## God Nodes (most connected - your core abstractions)
-1. `next` - 26 edges
+1. `next` - 27 edges
 2. `formatMoney()` - 25 edges
 3. `Product` - 23 edges
-4. `react` - 21 edges
-5. `compilerOptions` - 18 edges
-6. `useCart()` - 17 edges
-7. `lucide-react` - 17 edges
+4. `react` - 22 edges
+5. `useCart()` - 19 edges
+6. `lucide-react` - 18 edges
+7. `compilerOptions` - 18 edges
 8. `motion` - 17 edges
 9. `now()` - 16 edges
 10. `Env` - 15 edges
@@ -53,33 +53,33 @@
   README.md → storefront/cf-preview-entry.mjs
 - `Machine-readable pages` --references--> `Product`  [INFERRED]
   storefront/README.md → storefront/lib/types.ts
-- `CategoryFeature` --references--> `Product`  [EXTRACTED]
-  storefront/components/editorial/split-feature.tsx → storefront/lib/types.ts
 - `getDsCategories()` --calls--> `callBusiness()`  [EXTRACTED]
   src/aliexpress/dropshipper.ts → src/aliexpress/client.ts
 - `CheckoutPage()` --calls--> `CheckoutForm()`  [EXTRACTED]
   storefront/app/checkout/page.tsx → storefront/components/checkout/checkout-form.tsx
+- `RootLayout()` --calls--> `SiteHeader()`  [EXTRACTED]
+  storefront/app/layout.tsx → storefront/components/site-header.tsx
 
 ## Import Cycles
 - None detected.
 
-## Communities (20 total, 5 thin omitted)
+## Communities (20 total, 4 thin omitted)
 
 ### Community 0 - "app/page.tsx"
-Cohesion: 0.09
-Nodes (58): lucide-react, motion, react, HomePage(), shelves(), withImage(), CartSheet(), BrandFilm() (+50 more)
+Cohesion: 0.12
+Nodes (34): HomePage(), shelves(), withImage(), BrandFilm(), EditorialHero(), LINES, Props, CategoryFeature (+26 more)
 
 ### Community 1 - "product.ts"
-Cohesion: 0.08
-Nodes (56): hono, exchangeCode(), expiry(), getAccessToken(), persist(), REFRESH_WINDOW_MS, refreshToken(), tokenHealth() (+48 more)
+Cohesion: 0.07
+Nodes (57): hono, exchangeCode(), expiry(), getAccessToken(), persist(), REFRESH_WINDOW_MS, refreshToken(), tokenHealth() (+49 more)
 
 ### Community 2 - "catalog.ts"
-Cohesion: 0.07
-Nodes (34): generateMetadata(), Params, ProductPage(), MediaGallery(), MediaItem, Props, SpecPanel(), HUES (+26 more)
+Cohesion: 0.09
+Nodes (30): generateMetadata(), Params, ProductPage(), MediaGallery(), MediaItem, SpecPanel(), api(), ApiDetail (+22 more)
 
 ### Community 3 - "next"
-Cohesion: 0.08
-Nodes (25): next, metadata, dynamicParams, generateMetadata(), Page(), Params, body, display (+17 more)
+Cohesion: 0.12
+Nodes (16): next, metadata, dynamicParams, generateMetadata(), Page(), Params, Collage(), SLOTS (+8 more)
 
 ### Community 4 - "storefront/package.json"
 Cohesion: 0.06
@@ -98,8 +98,8 @@ Cohesion: 0.11
 Nodes (15): BUNDLE_MAX_ADDONS, bundleRate(), discountedUnit(), isValidBundleId(), EXPRESS_ENABLED, SHIPPING_ZONES, ShippingMethod, shippingOption (+7 more)
 
 ### Community 8 - "cart-context.tsx"
-Cohesion: 0.16
-Nodes (20): Action, AddInput, addLine(), CartContext, CartContextValue, CartLine, CartProvider(), CartTotals (+12 more)
+Cohesion: 0.10
+Nodes (29): body, display, metadata, mono, poster, RootLayout(), serif, SiteFooter() (+21 more)
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.10
@@ -118,32 +118,36 @@ Cohesion: 0.17
 Nodes (11): compilerOptions, lib, module, moduleResolution, noEmit, noUncheckedIndexedAccess, skipLibCheck, strict (+3 more)
 
 ### Community 13 - "Rizzova Edge – where we are (handover for a new session)"
-Cohesion: 0.29
-Nodes (6): AliExpress, Live, Owner preferences, Rizz AI (Workers AI, no Claude usage), Rizzova Edge – where we are (handover for a new session), To do (in order)
+Cohesion: 0.22
+Nodes (8): AliExpress, Live, Owner preferences, Rizz AI (Workers AI, no Claude usage), Rizzova Edge – where we are (handover for a new session), Saving usage, ⭐ Start here (next session), To do (in order)
 
 ### Community 14 - "rizz-ai/tsconfig.json"
 Cohesion: 0.50
 Nodes (3): ../tsconfig.json, extends, include
 
+### Community 15 - "react"
+Cohesion: 0.12
+Nodes (32): lucide-react, motion, react, ClearCart(), metadata, OrderPage(), CartSheet(), Props (+24 more)
+
 ## Knowledge Gaps
 - **1 isolated node(s):** `../tsconfig.json`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 184 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 188 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `next` connect `next` to `app/page.tsx`, `catalog.ts`, `storefront/package.json`, `checkout-form.tsx`?**
-  _High betweenness centrality (0.095) - this node is a cross-community bridge._
+- **Why does `next` connect `next` to `app/page.tsx`, `catalog.ts`, `storefront/package.json`, `checkout-form.tsx`, `cart-context.tsx`, `react`?**
+  _High betweenness centrality (0.096) - this node is a cross-community bridge._
 - **What connects `../tsconfig.json` to the rest of the system?**
   _1 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `app/page.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.0882716049382716 - nodes in this community are weakly interconnected._
-- **Why does `Product` connect `app/page.tsx` to `catalog.ts`, `next`, `Rizzova Edge`?**
-  _High betweenness centrality (0.080) - this node is a cross-community bridge._
+  _Cohesion score 0.11734693877551021 - nodes in this community are weakly interconnected._
+- **Why does `Product` connect `app/page.tsx` to `catalog.ts`, `next`, `Rizzova Edge`, `react`?**
+  _High betweenness centrality (0.079) - this node is a cross-community bridge._
 - **Should `product.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.0762680488707886 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0745945945945946 - nodes in this community are weakly interconnected._
 - **Why does `Machine-readable pages` connect `Rizzova Edge` to `app/page.tsx`?**
-  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+  _High betweenness centrality (0.064) - this node is a cross-community bridge._
 - **Should `catalog.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07474747474747474 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08636977058029689 - nodes in this community are weakly interconnected._

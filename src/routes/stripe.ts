@@ -18,7 +18,9 @@ async function verify(secret: string, header: string | undefined, raw: string): 
 
 stripeWebhook.post("/", async (c) => {
   const raw = await c.req.text();
-  if (!(await verify(c.env.STRIPE_WEBHOOK_SECRET, c.req.header("stripe-signature"), raw))) return c.json({ error: "Bad signature" }, 400);
+  // The signing secret is a Worker secret, or the one saved by POST /admin/stripe/setup.
+  const secret = c.env.STRIPE_WEBHOOK_SECRET || (await c.env.KV.get("stripe:webhook_secret")) || "";
+  if (!secret || !(await verify(secret, c.req.header("stripe-signature"), raw))) return c.json({ error: "Bad signature" }, 400);
   const event = JSON.parse(raw);
 
   // Idempotency: skip events already processed. The event is recorded only after it succeeds,
@@ -51,7 +53,8 @@ stripeWebhook.post("/", async (c) => {
       s.payment_intent ?? null, details.email ?? null, ship.name ?? details.name ?? null, details.phone ?? null,
       ship.address || details.address ? JSON.stringify(ship.address ?? details.address) : null, s.amount_total ?? 0, now(), orderId,
     ).run();
-    if (updated.meta.changes) await c.env.JOBS.send({ type: "fulfil-order", orderId });
+    // Only live payments are sent to AliExpress, and only when AUTO_FULFIL is "on"; otherwise the order waits as 'paid'.
+    if (updated.meta.changes && event.livemode && c.env.AUTO_FULFIL === "on") await c.env.JOBS.send({ type: "fulfil-order", orderId });
   }
 
   if (event.type === "checkout.session.expired") {
