@@ -14,6 +14,14 @@ Updated 24 Oct 2026. Start a new session with: "Read RESUME.md in cursor86/rizzo
   - The admin token is not stored in the repo; reset it with `wrangler secret put ADMIN_TOKEN` if lost.
   - Product images use supplier URLs (no paid Cloudflare Images).
 
+## Rizz AI (Workers AI, no Claude usage)
+- https://rizz-ai.rizzdigital.workers.dev (folder `rizz-ai/`), model in `MODEL` var, same D1 as the backend.
+- Bearer `RIZZ_AI_TOKEN` (same value as the backend admin token). Public: `POST /v1/support` (20/hour per visitor, CORS to the store).
+- `POST /v1/product-copy/run {limit}` writes drafts into `product_copy`; cron does 10 every 6 hours.
+  `GET /v1/product-copy?status=draft` to review, `POST /v1/product-copy/review {approve:[ids]|"all", reject:[ids]}`.
+  Only approved copy shows on the store.
+- Also `POST /v1/caption {brand, topic, platform?, count?}`, `/v1/email {brand, purpose, points?}`, `/v1/summarise {text}`.
+
 ## AliExpress
 - App 555396 "Drop Shipping", status Test, DS permission group Active.
 - Signing verified: `GET /admin/ae-selftest` returns `signatureOk: true`.

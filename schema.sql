@@ -159,3 +159,17 @@ CREATE TABLE IF NOT EXISTS webhook_events (
 -- Order number sequence (D1 has no sequences).
 CREATE TABLE IF NOT EXISTS counters (name TEXT PRIMARY KEY, value INTEGER NOT NULL);
 INSERT OR IGNORE INTO counters(name, value) VALUES ('order_number', 240000);
+
+-- AI-written product copy (filled by the rizz-ai Worker). Shown on the store only once approved.
+CREATE TABLE IF NOT EXISTS product_copy (
+  product_id   INTEGER PRIMARY KEY REFERENCES products(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  summary      TEXT,
+  description  TEXT NOT NULL,                 -- plain text, paragraphs separated by blank lines
+  tags         TEXT,                          -- comma-separated
+  status       TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','approved','rejected')),
+  model        TEXT,
+  created_at   INTEGER NOT NULL,
+  updated_at   INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_product_copy_status ON product_copy(status);

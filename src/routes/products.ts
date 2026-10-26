@@ -39,8 +39,9 @@ products.get("/", async (c) => {
   if (cursor) { where.push("(p.created_at, p.id) < (?, ?)"); binds.push(cursor.c, cursor.i); }
 
   const { results } = await c.env.DB.prepare(
-    `SELECT p.id, p.title, p.slug, p.currency, p.min_price_cents, p.max_price_cents, p.feature_image_id, p.created_at
+    `SELECT p.id, COALESCE(pc.title, p.title) AS title, p.slug, p.currency, p.min_price_cents, p.max_price_cents, p.feature_image_id, p.created_at
      FROM products p
+     LEFT JOIN product_copy pc ON pc.product_id = p.id AND pc.status = 'approved'
      WHERE ${where.join(" AND ")}
      ORDER BY p.created_at DESC, p.id DESC
      LIMIT ?`,
@@ -74,7 +75,11 @@ products.get("/", async (c) => {
 products.get("/:slug", async (c) => {
   const slug = c.req.param("slug");
   const product = await c.env.DB.prepare(
-    `SELECT id, title, slug, description, currency, min_price_cents, max_price_cents FROM products WHERE slug = ? AND status = 'active'`,
+    // Approved Rizz AI copy (plain text) replaces the supplier title and description.
+    `SELECT p.id, COALESCE(pc.title, p.title) AS title, p.slug, COALESCE(pc.description, p.description) AS description,
+            pc.summary, p.currency, p.min_price_cents, p.max_price_cents
+     FROM products p LEFT JOIN product_copy pc ON pc.product_id = p.id AND pc.status = 'approved'
+     WHERE p.slug = ? AND p.status = 'active'`,
   ).bind(slug).first<{ id: number }>();
   if (!product) return c.json({ error: "Not found" }, 404);
   const [variants, images] = await c.env.DB.batch([

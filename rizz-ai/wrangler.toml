@@ -1,0 +1,31 @@
+# Rizz AI – one Worker for routine AI jobs across Rizzova and RizzDigital, on Cloudflare Workers AI.
+# Uses open models on the account's Workers AI allowance, so these jobs never use Claude.
+
+name = "rizz-ai"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[observability]
+enabled = true
+
+[ai]
+binding = "AI"
+
+[vars]
+MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+STORE_ORIGIN = "https://rizzova-storefront.rizzdigital.workers.dev"
+COPY_BATCH = "10"            # products written per cron run
+SUPPORT_PER_HOUR = "20"      # support messages per visitor per hour
+
+# Secret: RIZZ_AI_TOKEN (Bearer token for the internal endpoints)
+
+# Same D1 as rizzova-edge: reads products, writes product_copy.
+[[d1_databases]]
+binding = "DB"
+database_name = "rizzova-db"
+database_id = "002681e9-a691-402a-a80b-e34674cd5e43"
+
+[triggers]
+crons = ["17 */6 * * *"]     # write copy for products that have none yet
